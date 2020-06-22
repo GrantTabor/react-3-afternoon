@@ -1,9 +1,11 @@
 import React, { Component } from 'react';
+import axios from 'axios';
 
 import './App.css';
 
 import Header from './Header/Header';
 import Compose from './Compose/Compose';
+import Post from './Post/Post';
 
 class App extends Component {
   constructor() {
@@ -19,19 +21,35 @@ class App extends Component {
   }
   
   componentDidMount() {
-
+    axios.get('https://practiceapi.devmountain.com/api/posts').then( results => {
+      this.setState({ posts: results.data });
+    })
+    .catch(error => {alert("failed to download!")});
   }
 
-  updatePost() {
-  
+  updatePost( id, text ) {
+    axios.put(`https://practiceapi.devmountain.com/api/posts?id=${ id }`, { text })
+    .then( results => {
+      this.setState({ posts: results.data });
+    })
+    .catch(error => {alert("failed to update!")});
+    
   }
 
-  deletePost() {
-
+  deletePost(id) {
+    axios.delete(`https://practiceapi.devmountain.com/api/posts?id=${id}`)
+    .then(results => {
+      this.setState({posts: results.data})
+    })
+    .catch(error => {alert("failed to delete")})
   }
 
-  createPost() {
-
+  createPost(text) {
+    axios.post(`https://practiceapi.devmountain.com/api/posts`, {text})
+    .then(results => {
+      this.setState({posts: results.data})
+    })
+    .catch(error => {alert("failed to add")})
   }
 
   render() {
@@ -39,12 +57,25 @@ class App extends Component {
 
     return (
       <div className="App__parent">
-        <Header />
+        
+        <Header posts={posts}/>
 
         <section className="App__content">
 
-          <Compose />
+          <Compose createPost={ this.createPost }/>
           
+          {
+            posts.map( post => (
+              <Post key={ post.id }
+                    text={ post.text}
+                    date={ post.date }
+                    id={ post.id }
+                    updatePostFn={ this.updatePost }
+                    deletePostFn={ this.deletePost }
+                     />
+            ))
+          }
+
         </section>
       </div>
     );
